@@ -50,10 +50,13 @@ class ValidatedDescriptionHandler
                 if (! $this->validator->validate($schema, $value)) {
                     $errors = array_merge($errors, $this->validator->getErrors());
                 } elseif ($value !== $command[$name]) {
-                    // Update the config value if it changed and no validation errors were encountered.
-                    // This happen when the user extending an operation
-                    // See https://github.com/guzzle/guzzle-services/issues/145
-                    $command[$name] = $value;
+                    // Update the config value if filters are not set or
+                    // default value is set but command has no value
+                    if (empty($schema->getFilters())) {
+                        $command[$name] = $value;
+                    } elseif (!isset($command[$name]) && $schema->getDefault()) {
+                        $command[$name] = $schema->getDefault();
+                    }
                 }
             }
 
@@ -65,7 +68,7 @@ class ValidatedDescriptionHandler
                         $params->setName($name);
                         if (! $this->validator->validate($params, $value)) {
                             $errors = array_merge($errors, $this->validator->getErrors());
-                        } elseif ($value !== $command[$name]) {
+                        } elseif ($value !== $command[$name] && empty($schema->getFilters())) {
                             $command[$name] = $value;
                         }
                     }

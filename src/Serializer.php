@@ -155,10 +155,17 @@ class Serializer
 
         // Expand the URI template.
         $uri = \GuzzleHttp\uri_template($operation->getUri(), $variables);
+        
+        // Create URI instances for base and relative URIs
+        $baseUri = new Uri($this->description->getBaseUri());
+        $relativeUri = new Uri($uri);
+        
+        // Use UriResolver instead of deprecated Uri::resolve
+        $resolvedUri = \GuzzleHttp\Psr7\UriResolver::resolve($baseUri, $relativeUri);
 
         return new Request(
             $operation->getHttpMethod(),
-            Uri::resolve($this->description->getBaseUri(), $uri)
+            $resolvedUri
         );
     }
 }
